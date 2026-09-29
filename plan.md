@@ -15,7 +15,8 @@ Success requires:
 - separate validation of the fitted collinear AFM–FM calibration identity and assessment of the full zero-temperature ground state using perturbed and multistart noncollinear minimization, with an exchange-spectrum or transverse-stability check where practical;
 - a staged boundary-condition workflow in which periodic boundaries establish bulk coordination and term-level correctness before open boundaries are used for finite-flake spatial switching;
 - term-level energy/field checks, reciprocal and duplicate-free bonds, periodic supercell invariance, open-edge coordination, finite-size convergence, fixed spin norms, and time-step convergence; and
-- preservation of source identity, units, transformations, and all modeling reductions in the saved result.
+- preservation of source identity, units, transformations, and all modeling reductions in the saved result; and
+- a no-argument `run_open_sot_example.m` convenience entry point that can be launched with MATLAB's Run button, creates the ignored `results/` directory when absent, delegates all simulation work to `cri3_run(config)`, returns the result, and refuses to overwrite an existing `candidate.mat`.
 
 ## Model Classification and Equation Family
 
@@ -28,6 +29,8 @@ Inputs are a validated embedded source cell, supercell size, boundary conditions
 ## Existing Behavior and Reference Implementations
 
 At plan approval, the active workspace contained planning documents only and had no MATLAB implementation, tests, accepted numerical baseline, or usable Git repository. The approved implementation now provides the staged source, topology, Hamiltonian, LLGS, RK4, ground-state diagnostic, simulation-interface, and test files listed below. It remains a new standalone model rather than a modification of an existing solver; because usable Git metadata was absent during implementation, no pre-implementation Git diff or history is available.
+
+`cri3_run.m` is intentionally a programmatic function whose required `config` argument makes direct Run-button execution invalid. The approved convenience change adds a separate no-argument example function rather than silently introducing scenario-specific defaults into that validated interface. ASTRO's script-style `main.m` confirms the usability value of a runnable entry point, but its workspace mutation, square-lattice model, parameters, and output policy are not copied.
 
 The ASTRO reference repository was inspected at `atomistic_model/2D/atomistic/atomistic_v2`, specifically `AGENTS.md`, `README.md`, `astro_default_config.m`, `astro_evaluate_field_terms.m`, and `integrate_llg.m`. It demonstrates separation of deterministic fields, explicit tesla-valued effective fields, RK4 substage field updates, post-step normalization, and saved-time checks. Its square Gd–FeCo lattice, four-neighbor topology, species mapping, coefficients, and production defaults are not transferable to CrI₃.
 
@@ -269,6 +272,8 @@ Use deterministic fixed-step RK4, recomputing fields and torques at every substa
 
 Save atom-resolved spins, layer magnetizations $\mathbf m_1,\mathbf m_2$, honeycomb-site averages, $\mathbf L=(\mathbf m_1-\mathbf m_2)/2$, $\mathbf M=(\mathbf m_1+\mathbf m_2)/2$, energy components, spin norms, configuration, units, source IDs, source and simulation coordinates, bond table and hash, exchange-conversion audit, solver, timestamps, and code version when available. Exploratory runs must use non-destructive output paths.
 
+The runnable example uses the already documented candidate choices: an $8\times8$ open flake, explicit $\alpha=0.001$, $t_{\rm final}=2$ ps, $\boldsymbol\tau_{\rm DL}=(0.01,-0.01)$ T, zero field-like torque, and `results/candidate.mat`. These are example inputs rather than production defaults or a material-specific switching claim. The entry point creates `results/` if needed and retains `config.overwrite=false`.
+
 ## Implementation Mapping
 
 Treat the stages below as explicit implementation-and-test checkpoints. Do not begin a later stage until the focused checks for the preceding stage pass; a failed gate returns the work to the component responsible for that behavior.
@@ -281,7 +286,7 @@ Treat the stages below as explicit implementation-and-test checkpoints. Do not b
 | 4. LLGS right-hand side | Precession and damping first, followed by layer-resolved DL and FL torque terms | Tangent dynamics $\mathbf s_i\cdot\dot{\mathbf s}_i=0$, precession direction, implicit Gilbert residual, and torque signs |
 | 5. Time integrator | RK4 with fields and torques recomputed at every substage | Finite values, spin norms, exact saved-time indexing, energy conservation/relaxation limits, and timestep convergence |
 | 6. Ground-state assessment | Reproducible no-drive perturbed and multistart noncollinear relaxations, with exchange-spectrum or transverse-Hessian analysis where practical | Converged energies and residual torques, layer/order-parameter classification, periodic-size checks, and no claim of globality from relaxation alone |
-| 7. SOT simulations and outputs | Configuration entry point, layer-resolved pulses, boundary-tagged observables, and result provenance; periodic control before open finite-flake production runs | DL-only/FL-only behavior, layer polarity, approved switching behavior, reproducible non-destructive saved results, and open-flake size convergence |
+| 7. SOT simulations and outputs | Configuration entry point, no-argument runnable example, layer-resolved pulses, boundary-tagged observables, and result provenance; periodic control before open finite-flake production runs | Direct Run-button execution, delegation to `cri3_run`, DL-only/FL-only behavior, layer polarity, reproducible non-destructive saved results, and open-flake size convergence |
 
 The architectural boundary is:
 
@@ -297,7 +302,7 @@ structure -> bond table -> energy/effective field -> LLGS RHS -> integrator -> s
 4. **LLGS right-hand side:** implement `cri3_llgs_rhs.m` against the already verified effective-field interface, first checking precession and damping and then the DL/FL terms. Gate: verify tangent dynamics, precession direction, the explicit-versus-implicit Gilbert residual, and layer-resolved DL-only and FL-only torque directions.
 5. **Time integration:** implement `cri3_integrate_rk4.m`, recomputing fields and torques at every substage and normalizing only after each complete step. Gate: verify finite states, fixed spin norms, exact saved-time alignment, zero-damping energy behavior, positive-damping relaxation, and 1 fs versus 0.5 fs convergence.
 6. **Ground-state assessment:** after the static Hamiltonian, RHS, and integrator gates pass, run the no-drive perturbed and multistart noncollinear relaxation campaign defined below and, where practical, the independent exchange-spectrum or transverse-Hessian analysis. Gate: report converged energies, residual torques, order parameters, periodic-size dependence, and the remaining limit on any global-ground-state claim.
-7. **Simulation interface, SOT runs, and outputs:** add one documented configuration/entry point, layer-resolved signed torque inputs, observables, provenance-rich saving, and the focused end-to-end tests. Gate: verify the approved project-specific deterministic SOT behavior and reproducible outputs.
+7. **Simulation interface, SOT runs, and outputs:** retain `cri3_run(config)` as the validated programmatic interface; add and document `run_open_sot_example.m` as the no-argument convenience entry point; keep the explicit layer-resolved signed torque inputs, observables, provenance-rich saving, and focused end-to-end tests. Gate: verify that direct execution creates the missing output directory, produces the documented configuration and result, and refuses to overwrite an existing output while preserving the approved deterministic SOT behavior.
 
 Use arrays shaped `(NCr,3)` for spins/positions and a bond table containing `(i,j,image_offset,source_pair,shell,J_Joule,provenance)`. Keep structure construction, Hamiltonian mapping, SOT calibration, solver behavior, and optional physics as separate changes. Do not import ASTRO's square-lattice indexing or material parameters.
 
@@ -328,6 +333,12 @@ Use arrays shaped `(NCr,3)` for spins/positions and a bond table containing `(i,
 - Check finite values, $\max_i||\mathbf s_i|-1|$, precession direction, explicit-versus-implicit Gilbert residual, and DL-only/FL-only torque directions on both layers.
 - Require the 1 fs and 0.5 fs trajectories to agree within a declared observable tolerance chosen after a convergence study; do not invent the tolerance before the first deterministic run.
 
+### Runnable example interface
+
+- Run `run_open_sot_example` with no input arguments from the repository root and require it to create `results/`, return a valid `cri3_result`, preserve the documented candidate configuration, and save `results/candidate.mat`.
+- Invoke the example again without changing `config.overwrite=false` and require the existing `CrI3:OutputExists` safeguard to reject replacement of the first result.
+- Run `matlab -batch "addpath('tests'); run_all_tests"` and require all existing deterministic smoke checks to remain passing; no new physics benchmark or literature comparison is needed because the change does not alter the model, equations, parameters, or solver.
+
 ## References
 
 [1] Bilayer Database (BiDB), record `2CrI3-1-2-1_0_0_1-0_-0.69`, derived from C2DB monolayer `2CrI3-1`, fields `Overview`, `Crystal structure`, `Magnetic properties`, downloadable CIF, and downloadable JSON. Direct record: [https://bidb.fysik.dtu.dk/material/2CrI3-1-2-1_0_0_1-0_-0.69](https://bidb.fysik.dtu.dk/material/2CrI3-1-2-1_0_0_1-0_-0.69). Accessed 2026-09-27.
@@ -352,4 +363,4 @@ Use arrays shaped `(NCr,3)` for spins/positions and a bond table containing `(i,
 6. **Approved Soenen-to-BiDB mapping:** the user explicitly approved the revised mapping on 2026-09-29. Implementation must preserve the selected global coordinate convention and every documented endpoint/image offset; any material remapping requires renewed approval.
 7. **Unspecified production drive:** no material-specific damping transfer, SOT pulse amplitude, duration, or switching acceptance threshold has been approved. The implementation therefore requires damping explicitly, accepts signed layer-resolved torque amplitudes in tesla, and limits built-in checks to equation signs, numerical convergence, and deterministic open-boundary behavior rather than claiming a physical switching threshold.
 
-There are no remaining approval questions for the implemented baseline. A physical switching study requires a separately approved damping/drive/device parameterization and acceptance observable.
+The user approved the exact `run_open_sot_example.m`, README, and focused interface-test scope on 2026-09-29. A physical switching study still requires a separately approved damping/drive/device parameterization and acceptance observable.

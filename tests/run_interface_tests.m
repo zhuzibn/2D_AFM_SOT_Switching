@@ -3,6 +3,8 @@ function run_interface_tests()
 
 root = fileparts(fileparts(mfilename('fullpath')));
 addpath(root);
+assert(nargin('run_open_sot_example') == 0);
+assert(nargout('run_open_sot_example') == 1);
 config = cri3_default_config();
 config.nx = 1;
 config.ny = 1;

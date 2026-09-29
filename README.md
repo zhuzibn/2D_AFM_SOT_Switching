@@ -6,7 +6,18 @@ The baseline includes scalar exchange, out-of-plane single-ion anisotropy, Zeema
 
 ## Run a simulation
 
-Start from the documented configuration and explicitly choose damping and final time:
+Run the documented candidate open-flake example directly from MATLAB's Run
+button or the Command Window:
+
+```matlab
+result = run_open_sot_example();
+```
+
+The example creates the ignored `results/` directory when needed and saves
+`results/candidate.mat`. It refuses to overwrite an existing result.
+
+For a custom simulation, start from the documented configuration and explicitly
+choose damping and final time:
 
 ```matlab
 config = cri3_default_config();
@@ -21,7 +32,7 @@ config.output_file = fullfile('results', 'candidate.mat');
 result = cri3_run(config);
 ```
 
-Create the output directory first if saving is requested. Existing files are not overwritten unless `config.overwrite=true`. Leaving `output_file` empty returns the result without writing a file.
+For custom simulations, create the output directory first if saving is requested. Existing files are not overwritten unless `config.overwrite=true`. Leaving `output_file` empty returns the result without writing a file.
 
 `config.alpha` intentionally has no production default. Soenen *et al.* used $\alpha=0.001$ for their separate $T=0$ stability calculation, but its transfer to a particular SOT device is a modeling choice. The code therefore requires the caller to select it explicitly. Likewise, torque amplitudes are direct field-equivalent inputs in tesla; this repository does not claim a material-specific switching threshold without an approved device and drive parameterization.
 
@@ -49,6 +60,7 @@ Periodic boundaries are used for bulk construction checks. Open boundaries retai
 - `cri3_energy_fields.m` — energy and conservative tesla-valued fields.
 - `cri3_llgs_rhs.m` and `cri3_integrate_rk4.m` — explicit LLGS and fixed-step RK4.
 - `cri3_run.m` — validated simulation and provenance-rich result interface.
+- `run_open_sot_example.m` — no-argument runnable candidate example.
 - `cri3_assess_ground_state.m` and `cri3_transverse_hessian.m` — reproducible local-minimum diagnostics. These do not prove a global ground state.
 
 Results contain the complete source record, site and bond tables, bond SHA-256, configuration, atom-resolved trajectory, layer and honeycomb averages, $\mathbf M$, $\mathbf L$, energy components, solver metadata, units, and source/mapping provenance.
