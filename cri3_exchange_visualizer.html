@@ -1,0 +1,1227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive Cr-only exchange atlas for the planned AB-prime bilayer CrI3 atomistic model.">
+  <title>CrI3 Exchange Atlas</title>
+  <style>
+    :root {
+      --ink: #e9f0ec;
+      --muted: #8d9d97;
+      --paper: #09100f;
+      --panel: #101a18;
+      --panel-2: #14211e;
+      --rule: #2a3b36;
+      --top: #ffbf47;
+      --bottom: #52d6c5;
+      --fm: #4de1c1;
+      --afm: #ff6b57;
+      --inferred: #b3aaa0;
+      --focus: #fff4c7;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .36);
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      --sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: dark; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 76% 10%, rgba(82, 214, 197, .09), transparent 28rem),
+        radial-gradient(circle at 13% 33%, rgba(255, 191, 71, .08), transparent 24rem),
+        linear-gradient(145deg, #07100e 0%, #0a1211 46%, #060a09 100%);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+    }
+
+    button, select, input { font: inherit; }
+    button { color: inherit; }
+
+    .shell {
+      width: min(1680px, 100%);
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      padding: 18px 4px 22px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .eyebrow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--bottom);
+      font: 700 11px/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .17em;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: var(--bottom);
+      box-shadow: 7px 0 14px var(--bottom);
+    }
+
+    h1 {
+      margin: 9px 0 4px;
+      font: 400 clamp(34px, 5vw, 66px)/.96 var(--serif);
+      letter-spacing: -.045em;
+    }
+
+    .subtitle {
+      max-width: 850px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .header-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(86px, 1fr));
+      gap: 1px;
+      border: 1px solid var(--rule);
+      background: var(--rule);
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      min-width: 98px;
+      padding: 12px 14px;
+      background: var(--panel);
+    }
+
+    .metric b {
+      display: block;
+      font: 500 23px/1 var(--serif);
+      color: var(--focus);
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font: 650 9px/1.25 var(--mono);
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .atlas {
+      display: grid;
+      grid-template-columns: 250px minmax(500px, 1fr) 300px;
+      gap: 14px;
+      margin-top: 14px;
+      align-items: stretch;
+    }
+
+    .panel {
+      position: relative;
+      background: linear-gradient(165deg, rgba(20,33,30,.96), rgba(12,20,18,.97));
+      border: 1px solid var(--rule);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border: 1px solid rgba(255,255,255,.018);
+    }
+
+    .controls, .inspector { padding: 18px; }
+
+    .section + .section {
+      margin-top: 19px;
+      padding-top: 17px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .section-title {
+      margin: 0 0 11px;
+      color: var(--muted);
+      font: 700 10px/1 var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+    }
+
+    .segmented button, .small-button {
+      border: 1px solid var(--rule);
+      background: #0b1311;
+      padding: 8px 5px;
+      cursor: pointer;
+      font: 650 10px/1 var(--mono);
+      letter-spacing: .02em;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .segmented button:hover, .small-button:hover { border-color: #5f756e; transform: translateY(-1px); }
+    .segmented button.active { color: #06110e; background: var(--bottom); border-color: var(--bottom); }
+
+    select {
+      width: 100%;
+      color: var(--ink);
+      border: 1px solid var(--rule);
+      background: #0b1311;
+      padding: 9px 10px;
+      outline: none;
+    }
+
+    .check-list { display: grid; gap: 7px; }
+
+    .check {
+      display: grid;
+      grid-template-columns: 17px 10px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 25px;
+      cursor: pointer;
+      color: #cfdbd6;
+      font-size: 12px;
+    }
+
+    .check input {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      border: 1px solid #4a6059;
+      background: #07100e;
+      cursor: pointer;
+    }
+
+    .check input:checked {
+      background: var(--focus);
+      box-shadow: inset 0 0 0 4px #07100e;
+    }
+
+    .swatch { width: 9px; height: 9px; border-radius: 50%; }
+    .count { color: var(--muted); font: 10px/1 var(--mono); }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      color: #cfdbd6;
+    }
+
+    .switch-row + .switch-row { margin-top: 10px; }
+
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 21px;
+      flex: 0 0 auto;
+    }
+
+    .toggle input { position: absolute; opacity: 0; }
+    .toggle span {
+      position: absolute;
+      inset: 0;
+      border: 1px solid #41544e;
+      background: #08100e;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+    .toggle span::after {
+      content: "";
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      left: 3px;
+      top: 3px;
+      background: #71847e;
+      transition: .2s ease;
+    }
+    .toggle input:checked + span { border-color: var(--bottom); }
+    .toggle input:checked + span::after { transform: translateX(17px); background: var(--bottom); }
+
+    .stage {
+      min-height: 680px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .stage-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--rule);
+      background: rgba(5, 12, 10, .72);
+    }
+
+    .view-label {
+      color: var(--muted);
+      font: 650 10px/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .stage-actions { display: flex; gap: 7px; align-items: center; }
+    .stage-actions button { min-width: 65px; }
+
+    #visualization {
+      width: 100%;
+      height: 100%;
+      min-height: 565px;
+      display: block;
+      background:
+        radial-gradient(circle at center, rgba(46, 78, 69, .18), transparent 53%),
+        linear-gradient(180deg, rgba(255,255,255,.012), transparent 28%);
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    #visualization.dragging { cursor: grabbing; }
+
+    .stage-caption {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 15px;
+      border-top: 1px solid var(--rule);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .stage-caption code { color: #cad7d2; font-family: var(--mono); }
+
+    .audit-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--bottom);
+      font: 700 10px/1 var(--mono);
+      white-space: nowrap;
+    }
+
+    .audit-badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      background: currentColor;
+      border-radius: 50%;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .legend-item {
+      padding: 10px;
+      border: 1px solid var(--rule);
+      background: rgba(5, 12, 10, .45);
+    }
+
+    .legend-line {
+      display: block;
+      width: 34px;
+      height: 3px;
+      margin-bottom: 8px;
+    }
+
+    .legend-item b { display: block; font: 600 12px/1.2 var(--sans); }
+    .legend-item small { color: var(--muted); font: 9px/1.3 var(--mono); }
+
+    .selection-title {
+      margin: 0;
+      font: 400 27px/1.05 var(--serif);
+      letter-spacing: -.025em;
+    }
+
+    .selection-kicker {
+      display: inline-flex;
+      margin-bottom: 10px;
+      padding: 5px 7px;
+      color: var(--bottom);
+      border: 1px solid currentColor;
+      font: 700 9px/1 var(--mono);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      margin-top: 16px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+
+    .detail {
+      min-height: 66px;
+      padding: 10px;
+      background: #0b1412;
+    }
+
+    .detail span {
+      display: block;
+      color: var(--muted);
+      font: 650 8px/1.2 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .detail b {
+      display: block;
+      margin-top: 7px;
+      color: #eef5f1;
+      font: 600 12px/1.3 var(--mono);
+      overflow-wrap: anywhere;
+    }
+
+    .note {
+      margin: 14px 0 0;
+      padding: 11px 12px;
+      border-left: 2px solid var(--top);
+      background: rgba(255,191,71,.055);
+      color: #bbc7c2;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .note.warning { border-color: var(--afm); background: rgba(255,107,87,.055); }
+
+    .site-list { display: grid; gap: 7px; }
+    .site-card {
+      display: grid;
+      grid-template-columns: 33px 1fr;
+      gap: 9px;
+      align-items: center;
+      padding: 8px;
+      border: 1px solid var(--rule);
+      background: rgba(5,12,10,.48);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color .18s ease, transform .18s ease;
+    }
+    .site-card:hover { border-color: #61766f; transform: translateX(2px); }
+    .site-dot {
+      display: grid;
+      place-items: center;
+      width: 29px;
+      height: 29px;
+      border-radius: 50%;
+      color: #06100e;
+      font: 800 9px/1 var(--mono);
+    }
+    .site-card b { display: block; font: 650 11px/1.15 var(--mono); }
+    .site-card small { display: block; margin-top: 3px; color: var(--muted); font: 9px/1.2 var(--mono); }
+
+    .ledger {
+      margin-top: 14px;
+      padding: 0;
+    }
+
+    .ledger-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .ledger h2 { margin: 0; font: 400 28px/1 var(--serif); }
+    .ledger-head p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+
+    .table-wrap { max-height: 310px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font: 11px/1.3 var(--mono); }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 10px 12px;
+      color: var(--muted);
+      background: #0b1311;
+      border-bottom: 1px solid var(--rule);
+      text-align: left;
+      font-size: 9px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    td { padding: 9px 12px; border-bottom: 1px solid rgba(42,59,54,.62); color: #cdd8d3; }
+    tbody tr { cursor: pointer; transition: background .15s ease; }
+    tbody tr:hover, tbody tr.selected { background: rgba(82,214,197,.075); }
+    .sign-fm { color: var(--fm); }
+    .sign-afm { color: var(--afm); }
+    .tag {
+      display: inline-block;
+      padding: 3px 5px;
+      border: 1px solid #52655f;
+      color: #9eada7;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .status-strip {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 1px;
+      margin-top: 14px;
+      border: 1px solid var(--rule);
+      background: var(--rule);
+    }
+    .status-item { padding: 13px 15px; background: #0b1311; }
+    .status-item b { display: block; font: 600 11px/1.2 var(--mono); }
+    .status-item span { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.4; }
+
+    .cell-plane { fill: rgba(255,255,255,.012); stroke: rgba(161,186,177,.17); stroke-width: 1; }
+    .cell-plane.central { fill: rgba(255,255,255,.02); stroke: rgba(255,244,199,.36); stroke-width: 1.3; }
+    .bond-hit { fill: none; stroke: transparent; stroke-width: 13; cursor: pointer; }
+    .bond-line { fill: none; stroke-linecap: round; transition: opacity .16s ease, filter .16s ease; cursor: pointer; }
+    .bond-line.fm { stroke: var(--fm); }
+    .bond-line.afm { stroke: var(--afm); }
+    .bond-line.inferred { stroke: var(--inferred); stroke-dasharray: 4 5; }
+    .bond-line.dim { opacity: .13 !important; }
+    .bond-line.selected { opacity: 1 !important; filter: drop-shadow(0 0 7px currentColor); }
+    .bond-line.animated { animation: bondBreath 1.65s ease-in-out infinite alternate; }
+
+    @keyframes bondBreath {
+      from { filter: drop-shadow(0 0 1px rgba(255,255,255,.1)); }
+      to { filter: drop-shadow(0 0 5px rgba(255,255,255,.42)); }
+    }
+
+    .atom { cursor: pointer; transition: filter .16s ease; }
+    .atom:hover { filter: drop-shadow(0 0 8px rgba(255,244,199,.8)); }
+    .atom-halo { fill: none; stroke: var(--focus); stroke-width: 1.3; opacity: .85; animation: halo 1.7s ease-in-out infinite; }
+    @keyframes halo { 50% { r: 16px; opacity: .18; } }
+    .atom-label { pointer-events: none; fill: #f4f6f3; font: 700 9px var(--mono); paint-order: stroke; stroke: #07100e; stroke-width: 3px; }
+    .axis-label { fill: var(--muted); font: 700 9px var(--mono); }
+
+    .tooltip {
+      position: fixed;
+      z-index: 20;
+      max-width: 290px;
+      padding: 9px 11px;
+      border: 1px solid #50645e;
+      background: rgba(5, 12, 10, .96);
+      color: #e8f0ec;
+      box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(10px, 10px);
+      transition: opacity .1s ease;
+      font: 10px/1.45 var(--mono);
+    }
+    .tooltip.show { opacity: 1; }
+
+    @media (max-width: 1180px) {
+      .atlas { grid-template-columns: 230px minmax(480px, 1fr); }
+      .inspector { grid-column: 1 / -1; display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; }
+      .inspector .section + .section { margin-top: 0; padding-top: 0; border-top: 0; }
+    }
+
+    @media (max-width: 820px) {
+      .shell { padding: 12px; }
+      header { grid-template-columns: 1fr; }
+      .header-meta { width: 100%; }
+      .atlas { grid-template-columns: 1fr; }
+      .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+      .controls .section + .section { margin: 0; padding: 0; border: 0; }
+      .stage { min-height: 620px; }
+      #visualization { min-height: 500px; }
+      .inspector { grid-template-columns: 1fr; }
+      .status-strip { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .controls { grid-template-columns: 1fr; }
+      .header-meta { grid-template-columns: 1fr 1fr 1fr; }
+      .metric { min-width: 0; padding: 10px; }
+      .metric b { font-size: 18px; }
+      .stage-toolbar { align-items: flex-start; }
+      .stage-actions { flex-wrap: wrap; justify-content: flex-end; }
+      .stage-caption { grid-template-columns: 1fr; }
+      .ledger-head { align-items: flex-start; flex-direction: column; }
+      th:nth-child(4), td:nth-child(4), th:nth-child(6), td:nth-child(6) { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <div class="eyebrow">Material interaction atlas · class 4</div>
+        <h1>AB′ bilayer CrI<sub>3</sub></h1>
+        <p class="subtitle">An interactive view of the four magnetic Cr basis sites and the unique-bond exchange ledger proposed in <code>plan.md</code>. Orbit the structure, isolate a shell, or click any atom or bond to trace its periodic-image mapping.</p>
+      </div>
+      <div class="header-meta" aria-label="Model summary">
+        <div class="metric"><b>4</b><span>Cr spin sites / cell</span></div>
+        <div class="metric"><b>25 + 9</b><span>mapped + mirrored bonds</span></div>
+        <div class="metric"><b>6.694</b><span>Cr-plane gap · Å</span></div>
+      </div>
+    </header>
+
+    <main>
+      <div class="atlas">
+        <aside class="panel controls" aria-label="Visualization controls">
+          <section class="section">
+            <h2 class="section-title">Projection</h2>
+            <div class="segmented" id="viewButtons">
+              <button type="button" data-view="top">Top</button>
+              <button type="button" data-view="oblique" class="active">Oblique</button>
+              <button type="button" data-view="side">Side</button>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Bond scope</h2>
+            <div class="segmented" id="scopeButtons">
+              <button type="button" data-scope="focus">Atom</button>
+              <button type="button" data-scope="cell" class="active">Cell</button>
+              <button type="button" data-scope="network">Network</button>
+            </div>
+            <label class="section-title" for="focusSite" style="display:block;margin-top:13px">Focus atom</label>
+            <select id="focusSite" aria-label="Focus atom">
+              <option value="Cr1">Cr1 · bottom · honeycomb B</option>
+              <option value="Cr2">Cr2 · bottom · honeycomb A</option>
+              <option value="Cr3">Cr3 · top · honeycomb B</option>
+              <option value="Cr4" selected>Cr4 · top · honeycomb A</option>
+            </select>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Interaction shells</h2>
+            <div class="check-list" id="shellFilters">
+              <label class="check"><input type="checkbox" data-filter="intra-nn" checked><i class="swatch" style="background:#4de1c1"></i><span>Intralayer NN</span><b class="count">3 / layer</b></label>
+              <label class="check"><input type="checkbox" data-filter="intra-nnn" checked><i class="swatch" style="background:#8ac9ba"></i><span>Intralayer NNN</span><b class="count">6 / layer</b></label>
+              <label class="check"><input type="checkbox" data-filter="inter-nn" checked><i class="swatch" style="background:#73a99e"></i><span>Interlayer NN</span><b class="count">4</b></label>
+              <label class="check"><input type="checkbox" data-filter="inter-nnn" checked><i class="swatch" style="background:#ff8a76"></i><span>Interlayer NNN</span><b class="count">4</b></label>
+              <label class="check"><input type="checkbox" data-filter="inter-3nn" checked><i class="swatch" style="background:#ff6b57"></i><span>Interlayer 3NN</span><b class="count">8</b></label>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Annotations</h2>
+            <div class="switch-row"><span>Bottom-layer mirror</span><label class="toggle"><input id="showMirror" type="checkbox" checked><span></span></label></div>
+            <div class="switch-row"><span>Atom labels</span><label class="toggle"><input id="showLabels" type="checkbox" checked><span></span></label></div>
+            <div class="switch-row"><span>Bond animation</span><label class="toggle"><input id="animateBonds" type="checkbox" checked><span></span></label></div>
+          </section>
+        </aside>
+
+        <section class="panel stage" aria-label="Three-dimensional exchange visualization">
+          <div class="stage-toolbar">
+            <span class="view-label" id="viewLabel">Oblique projection · drag to orbit · wheel to zoom</span>
+            <div class="stage-actions">
+              <button class="small-button" id="resetView" type="button">Reset</button>
+              <button class="small-button" id="fitView" type="button">Fit</button>
+            </div>
+          </div>
+          <svg id="visualization" role="img" aria-label="Interactive AB-prime bilayer CrI3 Cr-site exchange structure"></svg>
+          <div class="stage-caption">
+            <span>Bond width follows <code>|J|</code>. Color follows the Hamiltonian sign: negative favors parallel alignment; positive favors antiparallel alignment. Animation is a visual locator, not physical exchange propagation.</span>
+            <span class="audit-badge" id="auditBadge">Running checks…</span>
+          </div>
+        </section>
+
+        <aside class="panel inspector" aria-label="Selection details">
+          <div>
+            <section class="section" id="selectionPanel">
+              <span class="selection-kicker">Model boundary</span>
+              <h2 class="selection-title">Cr-only scalar baseline</h2>
+              <p class="note">Iodine positions belong to the intended 16-atom structure record, but the current workspace does not contain their complete coordinates. This atlas therefore shows only the four magnetic Cr sites and Cr–Cr exchange.</p>
+              <p class="note warning">The grey dashed bottom-layer bonds are symmetry-propagated from the explicit top-layer table. They expose the intended construction rule, not an independently tabulated source mapping.</p>
+            </section>
+
+            <section class="section">
+              <h2 class="section-title">Sign & layer legend</h2>
+              <div class="legend">
+                <div class="legend-item"><i class="legend-line" style="background:var(--fm)"></i><b>J &lt; 0</b><small>parallel-favoring</small></div>
+                <div class="legend-item"><i class="legend-line" style="background:var(--afm)"></i><b>J &gt; 0</b><small>antiparallel-favoring</small></div>
+                <div class="legend-item"><i class="legend-line" style="background:var(--top)"></i><b>Top layer</b><small>Cr3 · Cr4</small></div>
+                <div class="legend-item"><i class="legend-line" style="background:var(--bottom)"></i><b>Bottom layer</b><small>Cr1 · Cr2</small></div>
+              </div>
+            </section>
+          </div>
+
+          <section class="section">
+            <h2 class="section-title">Basis sites</h2>
+            <div class="site-list" id="siteList"></div>
+            <p class="note" style="margin-top:12px">Click a basis site to show every retained bond incident on that atom in the central cell, including bonds stored from neighboring periodic images.</p>
+          </section>
+        </aside>
+      </div>
+
+      <section class="panel ledger" aria-label="Exchange bond ledger">
+        <div class="ledger-head">
+          <div>
+            <h2>Unique-bond ledger</h2>
+            <p>One central-cell copy of each active template. Select a row to locate it in the structure.</p>
+          </div>
+          <div class="audit-badge" id="visibleCount">0 bonds visible</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Source pair</th><th>Mapped endpoints</th><th>Image Δ</th><th>Shell</th><th>J final (meV)</th><th>Distance (Å)</th><th>Status</th></tr></thead>
+            <tbody id="ledgerBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="status-strip">
+        <div class="status-item"><b>Scope</b><span>BiDB geometry + fitted Soenen scalar reduction. This is a diagnostic visualization, not a full exchange-tensor model.</span></div>
+        <div class="status-item"><b>Pair convention</b><span>Every physical bond is stored once; no 1/2 factor is applied to the unique-bond Hamiltonian.</span></div>
+        <div class="status-item"><b>Source arithmetic</b><span>16 interlayer links: ΣS²Jzz = −0.09 meV; fitted ΣJ = +0.03 meV per source cell.</span></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="tooltip" id="tooltip" role="status"></div>
+
+  <script>
+    "use strict";
+
+    const lattice = {
+      a1: [7.007944101379477, 0, 0],
+      a2: [-3.5039720506897396, 6.069057620095938, 0],
+      gap: 6.694495
+    };
+
+    const sites = {
+      Cr1: { id: "Cr1", layer: "bottom", sublattice: "B", frac: [0.6666666668402268, 0.3333333338772982], z: 0 },
+      Cr2: { id: "Cr2", layer: "bottom", sublattice: "A", frac: [0.3333333330534472, 0.6666666661068942], z: 0 },
+      Cr3: { id: "Cr3", layer: "top", sublattice: "B", frac: [0.6663373607355287, 0.6455589525179144], z: lattice.gap },
+      Cr4: { id: "Cr4", layer: "top", sublattice: "A", frac: [0.333004026948749, 0.9788922847475102], z: lattice.gap }
+    };
+
+    const topIntralayer = [
+      { sourcePair: "1–2", from: "Cr4", to: "Cr3", offset: [0, 0], group: "intra-nn", sourceJ: -4.62, finalJ: -10.395 },
+      { sourcePair: "2–3", from: "Cr3", to: "Cr4", offset: [1, 0], group: "intra-nn", sourceJ: -4.20, finalJ: -9.450 },
+      { sourcePair: "2–7", from: "Cr3", to: "Cr4", offset: [0, -1], group: "intra-nn", sourceJ: -4.64, finalJ: -10.440 },
+      { sourcePair: "1–3", from: "Cr4", to: "Cr4", offset: [1, 0], group: "intra-nnn", sourceJ: -0.68, finalJ: -1.530 },
+      { sourcePair: "4–8", from: "Cr3", to: "Cr3", offset: [-1, -1], group: "intra-nnn", sourceJ: -0.68, finalJ: -1.530 },
+      { sourcePair: "1–7", from: "Cr4", to: "Cr4", offset: [0, -1], group: "intra-nnn", sourceJ: -0.62, finalJ: -1.395 },
+      { sourcePair: "2–4", from: "Cr3", to: "Cr3", offset: [1, 0], group: "intra-nnn", sourceJ: -0.62, finalJ: -1.395 },
+      { sourcePair: "3–7", from: "Cr4", to: "Cr4", offset: [-1, -1], group: "intra-nnn", sourceJ: -0.62, finalJ: -1.395 },
+      { sourcePair: "2–8", from: "Cr3", to: "Cr3", offset: [0, -1], group: "intra-nnn", sourceJ: -0.62, finalJ: -1.395 }
+    ].map((bond, index) => ({ ...bond, id: `top-${index}`, provenance: "source-mapped", fitted: false }));
+
+    const layerMirror = { Cr4: "Cr2", Cr3: "Cr1" };
+    const bottomIntralayer = topIntralayer.map((bond, index) => ({
+      ...bond,
+      id: `mirror-${index}`,
+      sourcePair: `mirror ${bond.sourcePair}`,
+      from: layerMirror[bond.from],
+      to: layerMirror[bond.to],
+      provenance: "symmetry-propagated",
+      mirrorOf: bond.sourcePair
+    }));
+
+    const interlayer = [
+      ["7–20", "Cr4", "Cr1", [0, 1], "inter-nn", 7.116569, -0.30, -0.6675],
+      ["1–19", "Cr4", "Cr2", [0, 0], "inter-nn", 7.043360, -0.29, -0.6450],
+      ["2–19", "Cr3", "Cr2", [0, 0], "inter-nn", 7.115432, -0.28, -0.6225],
+      ["2–20", "Cr3", "Cr1", [0, 0], "inter-nn", 7.043360, -0.29, -0.6450],
+      ["9–21", "Cr4", "Cr2", [0, 1], "inter-nnn", 8.248420, 0.13, 0.3000],
+      ["9–26", "Cr4", "Cr1", [-1, 0], "inter-nnn", 8.121772, 0.18, 0.4125],
+      ["10–22", "Cr3", "Cr1", [0, 1], "inter-nnn", 8.248420, 0.13, 0.3000],
+      ["10–29", "Cr3", "Cr2", [1, 0], "inter-nnn", 8.123762, 0.19, 0.4350],
+      ["9–20", "Cr4", "Cr1", [-1, 1], "inter-3nn", 9.186441, 0.12, 0.2775],
+      ["9–23", "Cr4", "Cr2", [1, 1], "inter-3nn", 9.132501, 0.06, 0.1425],
+      ["9–25", "Cr4", "Cr2", [-1, 0], "inter-3nn", 9.129844, 0.06, 0.1425],
+      ["9–28", "Cr4", "Cr1", [0, 0], "inter-3nn", 9.018277, 0.01, 0.0300],
+      ["10–23", "Cr3", "Cr2", [1, 1], "inter-3nn", 9.188200, 0.12, 0.2775],
+      ["10–24", "Cr3", "Cr1", [1, 1], "inter-3nn", 9.132501, 0.06, 0.1425],
+      ["10–26", "Cr3", "Cr1", [-1, 0], "inter-3nn", 9.129844, 0.05, 0.1200],
+      ["10–33", "Cr3", "Cr2", [0, -1], "inter-3nn", 9.017380, 0.01, 0.0300]
+    ].map((row, index) => ({
+      id: `inter-${index}`,
+      sourcePair: row[0], from: row[1], to: row[2], offset: row[3], group: row[4],
+      distance: row[5], sourceJ: row[6], finalJ: row[7], provenance: "source-mapped + fitted", fitted: true
+    }));
+
+    const allTemplates = [...topIntralayer, ...bottomIntralayer, ...interlayer];
+    const state = {
+      azimuth: -20,
+      tilt: 52,
+      zoom: 1,
+      scope: "cell",
+      focusSite: "Cr4",
+      selectedBond: null,
+      showMirror: true,
+      showLabels: true,
+      animate: true,
+      filters: new Set(["intra-nn", "intra-nnn", "inter-nn", "inter-nnn", "inter-3nn"])
+    };
+
+    const svg = document.getElementById("visualization");
+    const tooltip = document.getElementById("tooltip");
+    const NS = "http://www.w3.org/2000/svg";
+
+    function cartesian(siteId, cellX = 0, cellY = 0) {
+      const site = sites[siteId];
+      const f1 = site.frac[0] + cellX;
+      const f2 = site.frac[1] + cellY;
+      return [
+        f1 * lattice.a1[0] + f2 * lattice.a2[0],
+        f1 * lattice.a1[1] + f2 * lattice.a2[1],
+        site.z
+      ];
+    }
+
+    function distanceFor(bond) {
+      const a = cartesian(bond.from, 0, 0);
+      const b = cartesian(bond.to, bond.offset[0], bond.offset[1]);
+      return Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    }
+
+    topIntralayer.forEach(b => { b.distance = distanceFor(b); });
+    bottomIntralayer.forEach(b => { b.distance = distanceFor(b); });
+
+    function shellName(group) {
+      return ({
+        "intra-nn": "Intralayer NN",
+        "intra-nnn": "Intralayer NNN",
+        "inter-nn": "Interlayer NN",
+        "inter-nnn": "Interlayer NNN",
+        "inter-3nn": "Interlayer 3NN"
+      })[group];
+    }
+
+    function makeSvg(tag, attrs = {}) {
+      const node = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+      return node;
+    }
+
+    function projectRaw(point) {
+      const az = state.azimuth * Math.PI / 180;
+      const tilt = state.tilt * Math.PI / 180;
+      const x1 = point[0] * Math.cos(az) - point[1] * Math.sin(az);
+      const y1 = point[0] * Math.sin(az) + point[1] * Math.cos(az);
+      return {
+        x: x1,
+        y: y1 * Math.cos(tilt) - point[2] * Math.sin(tilt),
+        depth: y1 * Math.sin(tilt) + point[2] * Math.cos(tilt)
+      };
+    }
+
+    function projector(width, height) {
+      const raw = [];
+      for (let cx = -1; cx <= 1; cx += 1) {
+        for (let cy = -1; cy <= 1; cy += 1) {
+          Object.keys(sites).forEach(id => raw.push(projectRaw(cartesian(id, cx, cy))));
+        }
+      }
+      const xs = raw.map(p => p.x);
+      const ys = raw.map(p => p.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+      const rangeX = Math.max(maxX - minX, 1);
+      const rangeY = Math.max(maxY - minY, 1);
+      const scale = Math.min((width - 100) / rangeX, (height - 100) / rangeY) * state.zoom;
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+      return point => {
+        const p = projectRaw(point);
+        return { x: width / 2 + (p.x - centerX) * scale, y: height / 2 + (p.y - centerY) * scale, depth: p.depth };
+      };
+    }
+
+    function enabledTemplates() {
+      return allTemplates.filter(bond => state.filters.has(bond.group) && (state.showMirror || bond.provenance !== "symmetry-propagated"));
+    }
+
+    function bondInstances() {
+      const templates = enabledTemplates();
+      const instances = [];
+      for (let cx = -1; cx <= 1; cx += 1) {
+        for (let cy = -1; cy <= 1; cy += 1) {
+          templates.forEach(template => {
+            const endCell = [cx + template.offset[0], cy + template.offset[1]];
+            const inBounds = Math.abs(endCell[0]) <= 1 && Math.abs(endCell[1]) <= 1;
+            if (state.scope === "cell" && (cx !== 0 || cy !== 0)) return;
+            if (state.scope === "network" && !inBounds) return;
+            if (state.scope === "focus") {
+              const fromIsFocus = template.from === state.focusSite && cx === 0 && cy === 0;
+              const toIsFocus = template.to === state.focusSite && endCell[0] === 0 && endCell[1] === 0;
+              if (!fromIsFocus && !toIsFocus) return;
+            }
+            instances.push({ ...template, cell: [cx, cy], endCell, instanceId: `${template.id}@${cx},${cy}` });
+          });
+        }
+      }
+      return instances;
+    }
+
+    function drawCellPlanes(root, project) {
+      [0, lattice.gap].forEach((z, zi) => {
+        for (let cx = -1; cx <= 1; cx += 1) {
+          for (let cy = -1; cy <= 1; cy += 1) {
+            const corners = [[cx, cy], [cx + 1, cy], [cx + 1, cy + 1], [cx, cy + 1]].map(([u, v]) => project([
+              u * lattice.a1[0] + v * lattice.a2[0],
+              u * lattice.a1[1] + v * lattice.a2[1],
+              z
+            ]));
+            const polygon = makeSvg("polygon", {
+              points: corners.map(p => `${p.x},${p.y}`).join(" "),
+              class: `cell-plane${cx === 0 && cy === 0 ? " central" : ""}`,
+              opacity: zi === 0 ? .9 : .65
+            });
+            root.appendChild(polygon);
+          }
+        }
+      });
+    }
+
+    function bondWidth(j) {
+      return 1.35 + 3.2 * Math.sqrt(Math.min(Math.abs(j), 10.44) / 10.44);
+    }
+
+    function bondLabel(bond) {
+      return `${bond.sourcePair}: ${bond.from} → ${bond.to} [${bond.offset.join(", ")}], ${shellName(bond.group)}, J = ${bond.finalJ.toFixed(4)} meV`;
+    }
+
+    function drawBond(root, bond, project) {
+      const p1 = project(cartesian(bond.from, bond.cell[0], bond.cell[1]));
+      const p2 = project(cartesian(bond.to, bond.endCell[0], bond.endCell[1]));
+      const group = makeSvg("g", { tabindex: "0", role: "button", "aria-label": bondLabel(bond) });
+      const selected = state.selectedBond === bond.id;
+      const faded = state.selectedBond && !selected;
+      const cls = [
+        "bond-line",
+        bond.finalJ < 0 ? "fm" : "afm",
+        bond.provenance === "symmetry-propagated" ? "inferred" : "",
+        state.animate ? "animated" : "",
+        selected ? "selected" : "",
+        faded ? "dim" : ""
+      ].filter(Boolean).join(" ");
+      const line = makeSvg("line", { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, class: cls, "stroke-width": bondWidth(bond.finalJ), opacity: bond.provenance === "symmetry-propagated" ? .68 : .82 });
+      const hit = makeSvg("line", { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, class: "bond-hit" });
+      const title = makeSvg("title");
+      title.textContent = bondLabel(bond);
+      group.append(line, hit, title);
+      const activate = () => selectBond(bond);
+      group.addEventListener("click", activate);
+      group.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); activate(); } });
+      group.addEventListener("pointerenter", event => showTooltip(event, bondLabel(bond)));
+      group.addEventListener("pointermove", moveTooltip);
+      group.addEventListener("pointerleave", hideTooltip);
+      root.appendChild(group);
+    }
+
+    function drawAtoms(root, project) {
+      const atoms = [];
+      for (let cx = -1; cx <= 1; cx += 1) {
+        for (let cy = -1; cy <= 1; cy += 1) {
+          Object.values(sites).forEach(site => {
+            const p = project(cartesian(site.id, cx, cy));
+            atoms.push({ site, cx, cy, ...p });
+          });
+        }
+      }
+      atoms.sort((a, b) => a.depth - b.depth).forEach(atom => {
+        const centralFocus = atom.cx === 0 && atom.cy === 0 && atom.site.id === state.focusSite;
+        const group = makeSvg("g", { class: "atom", tabindex: "0", role: "button", "aria-label": `${atom.site.id}, ${atom.site.layer} layer, cell ${atom.cx}, ${atom.cy}` });
+        if (centralFocus) group.appendChild(makeSvg("circle", { cx: atom.x, cy: atom.y, r: 12, class: "atom-halo" }));
+        group.appendChild(makeSvg("circle", {
+          cx: atom.x, cy: atom.y, r: atom.cx === 0 && atom.cy === 0 ? 8.2 : 6.2,
+          fill: atom.site.layer === "top" ? "var(--top)" : "var(--bottom)",
+          stroke: centralFocus ? "var(--focus)" : "#07100e",
+          "stroke-width": centralFocus ? 2.1 : 1.6
+        }));
+        if (state.showLabels && atom.cx === 0 && atom.cy === 0) {
+          const label = makeSvg("text", { x: atom.x + 10, y: atom.y - 10, class: "atom-label" });
+          label.textContent = atom.site.id;
+          group.appendChild(label);
+        }
+        const activate = () => focusAtom(atom.site.id);
+        group.addEventListener("click", activate);
+        group.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); activate(); } });
+        group.addEventListener("pointerenter", event => showTooltip(event, `${atom.site.id} · ${atom.site.layer} · cell (${atom.cx}, ${atom.cy})`));
+        group.addEventListener("pointermove", moveTooltip);
+        group.addEventListener("pointerleave", hideTooltip);
+        root.appendChild(group);
+      });
+    }
+
+    function drawAxes(root, width, height) {
+      const x = 47, y = height - 43;
+      const axes = makeSvg("g", { opacity: ".8" });
+      axes.appendChild(makeSvg("line", { x1: x, y1: y, x2: x + 36, y2: y, stroke: "var(--top)", "stroke-width": 1.5 }));
+      axes.appendChild(makeSvg("line", { x1: x, y1: y, x2: x, y2: y - 36, stroke: "var(--bottom)", "stroke-width": 1.5 }));
+      const tx = makeSvg("text", { x: x + 42, y: y + 3, class: "axis-label" }); tx.textContent = "screen x";
+      const tz = makeSvg("text", { x: x - 4, y: y - 43, class: "axis-label", "text-anchor": "middle" }); tz.textContent = "screen y";
+      axes.append(tx, tz);
+      root.appendChild(axes);
+    }
+
+    function render() {
+      const rect = svg.getBoundingClientRect();
+      const width = Math.max(rect.width, 500);
+      const height = Math.max(rect.height, 500);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.replaceChildren();
+      const project = projector(width, height);
+      const planes = makeSvg("g");
+      const bonds = makeSvg("g");
+      const atoms = makeSvg("g");
+      drawCellPlanes(planes, project);
+      const instances = bondInstances().sort((a, b) => {
+        const ad = (project(cartesian(a.from, a.cell[0], a.cell[1])).depth + project(cartesian(a.to, a.endCell[0], a.endCell[1])).depth) / 2;
+        const bd = (project(cartesian(b.from, b.cell[0], b.cell[1])).depth + project(cartesian(b.to, b.endCell[0], b.endCell[1])).depth) / 2;
+        return ad - bd;
+      });
+      instances.forEach(bond => drawBond(bonds, bond, project));
+      drawAtoms(atoms, project);
+      svg.append(planes, bonds, atoms);
+      drawAxes(svg, width, height);
+      document.getElementById("visibleCount").textContent = `${instances.length} bonds visible`;
+      renderLedger();
+    }
+
+    function renderSites() {
+      const host = document.getElementById("siteList");
+      host.replaceChildren();
+      Object.values(sites).forEach(site => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "site-card";
+        button.innerHTML = `<span class="site-dot" style="background:${site.layer === "top" ? "var(--top)" : "var(--bottom)"}">${site.id}</span><span><b>${site.layer} layer · ${site.sublattice} site</b><small>f = (${site.frac[0].toFixed(6)}, ${site.frac[1].toFixed(6)})</small></span>`;
+        button.addEventListener("click", () => focusAtom(site.id));
+        host.appendChild(button);
+      });
+    }
+
+    function renderLedger() {
+      const body = document.getElementById("ledgerBody");
+      body.replaceChildren();
+      enabledTemplates().forEach(bond => {
+        const row = document.createElement("tr");
+        if (state.selectedBond === bond.id) row.classList.add("selected");
+        row.innerHTML = `
+          <td>${bond.sourcePair}</td>
+          <td>${bond.from} → ${bond.to}</td>
+          <td>(${bond.offset[0]}, ${bond.offset[1]})</td>
+          <td>${shellName(bond.group)}</td>
+          <td class="${bond.finalJ < 0 ? "sign-fm" : "sign-afm"}">${bond.finalJ > 0 ? "+" : ""}${bond.finalJ.toFixed(4)}</td>
+          <td>${bond.distance.toFixed(6)}</td>
+          <td><span class="tag">${bond.provenance}</span></td>`;
+        row.addEventListener("click", () => selectBond(bond));
+        body.appendChild(row);
+      });
+    }
+
+    function selectBond(bond) {
+      state.selectedBond = bond.id;
+      const signText = bond.finalJ < 0 ? "Parallel-favoring" : "Antiparallel-favoring";
+      const correction = bond.fitted ? `${(bond.finalJ - 2.25 * bond.sourceJ).toFixed(4)} meV/link` : "none";
+      const panel = document.getElementById("selectionPanel");
+      panel.innerHTML = `
+        <span class="selection-kicker">${shellName(bond.group)}</span>
+        <h2 class="selection-title">${bond.from} ↔ ${bond.to}</h2>
+        <div class="detail-grid">
+          <div class="detail"><span>Source pair</span><b>${bond.sourcePair}</b></div>
+          <div class="detail"><span>Periodic image Δ</span><b>(${bond.offset[0]}, ${bond.offset[1]})</b></div>
+          <div class="detail"><span>Final J</span><b class="${bond.finalJ < 0 ? "sign-fm" : "sign-afm"}">${bond.finalJ > 0 ? "+" : ""}${bond.finalJ.toFixed(4)} meV</b></div>
+          <div class="detail"><span>Distance</span><b>${bond.distance.toFixed(6)} Å</b></div>
+          <div class="detail"><span>Source coefficient</span><b>${bond.sourceJ > 0 ? "+" : ""}${bond.sourceJ.toFixed(2)} meV</b></div>
+          <div class="detail"><span>Fit correction</span><b>${correction}</b></div>
+        </div>
+        <p class="note">${signText} in the plan's +J sᵢ·sⱼ convention. Provenance: ${bond.provenance}.${bond.provenance === "symmetry-propagated" ? ` This row mirrors top-layer source pair ${bond.mirrorOf}.` : ""}</p>`;
+      render();
+    }
+
+    function focusAtom(siteId) {
+      state.focusSite = siteId;
+      state.scope = "focus";
+      state.selectedBond = null;
+      document.getElementById("focusSite").value = siteId;
+      syncButtonState("scopeButtons", "scope", state.scope);
+      const site = sites[siteId];
+      const panel = document.getElementById("selectionPanel");
+      const degree = bondInstances().length;
+      panel.innerHTML = `
+        <span class="selection-kicker">Central-cell atom</span>
+        <h2 class="selection-title">${siteId} · ${site.layer}</h2>
+        <div class="detail-grid">
+          <div class="detail"><span>Honeycomb site</span><b>${site.sublattice}</b></div>
+          <div class="detail"><span>Visible incident bonds</span><b>${degree}</b></div>
+          <div class="detail"><span>Fractional f₁</span><b>${site.frac[0].toFixed(9)}</b></div>
+          <div class="detail"><span>Fractional f₂</span><b>${site.frac[1].toFixed(9)}</b></div>
+        </div>
+        <p class="note">Atom scope includes templates anchored in neighboring cells when their opposite endpoint is ${siteId} in the central cell. That is why it shows the complete retained periodic coordination rather than only outward-stored rows.</p>`;
+      render();
+    }
+
+    function showTooltip(event, text) {
+      tooltip.textContent = text;
+      tooltip.classList.add("show");
+      moveTooltip(event);
+    }
+
+    function moveTooltip(event) {
+      tooltip.style.left = `${Math.min(event.clientX + 12, window.innerWidth - 310)}px`;
+      tooltip.style.top = `${Math.min(event.clientY + 12, window.innerHeight - 90)}px`;
+    }
+
+    function hideTooltip() { tooltip.classList.remove("show"); }
+
+    function syncButtonState(containerId, dataName, value) {
+      document.querySelectorAll(`#${containerId} button`).forEach(button => button.classList.toggle("active", button.dataset[dataName] === value));
+    }
+
+    function setView(view) {
+      if (view === "top") { state.azimuth = -30; state.tilt = 0; }
+      if (view === "oblique") { state.azimuth = -20; state.tilt = 52; }
+      if (view === "side") { state.azimuth = 0; state.tilt = 90; }
+      state.zoom = 1;
+      syncButtonState("viewButtons", "view", view);
+      document.getElementById("viewLabel").textContent = `${view[0].toUpperCase()}${view.slice(1)} projection · drag to orbit · wheel to zoom`;
+      render();
+    }
+
+    function runAudit() {
+      const checks = [];
+      const near = (a, b, tolerance = 1e-8) => Math.abs(a - b) <= tolerance;
+      const shellCount = group => allTemplates.filter(bond => bond.group === group && bond.provenance !== "symmetry-propagated").length;
+      const canonicalKey = bond => {
+        const forward = `${bond.from}|${bond.to}|${bond.offset[0]},${bond.offset[1]}`;
+        const reverse = `${bond.to}|${bond.from}|${-bond.offset[0]},${-bond.offset[1]}`;
+        return forward < reverse ? forward : reverse;
+      };
+      const degreeFor = siteId => {
+        let degree = 0;
+        for (let cx = -1; cx <= 1; cx += 1) {
+          for (let cy = -1; cy <= 1; cy += 1) {
+            allTemplates.forEach(bond => {
+              const endCell = [cx + bond.offset[0], cy + bond.offset[1]];
+              if ((bond.from === siteId && cx === 0 && cy === 0) ||
+                  (bond.to === siteId && endCell[0] === 0 && endCell[1] === 0)) degree += 1;
+            });
+          }
+        }
+        return degree;
+      };
+      checks.push(Object.keys(sites).length === 4);
+      checks.push(topIntralayer.length === 9 && bottomIntralayer.length === 9);
+      checks.push(interlayer.length === 16);
+      checks.push(shellCount("intra-nn") === 3 && shellCount("intra-nnn") === 6);
+      checks.push(shellCount("inter-nn") === 4 && shellCount("inter-nnn") === 4 && shellCount("inter-3nn") === 8);
+      checks.push(allTemplates.every(b => sites[b.from] && sites[b.to] && Number.isFinite(b.finalJ)));
+      checks.push(new Set(allTemplates.map(canonicalKey)).size === allTemplates.length);
+      checks.push(Object.keys(sites).every(siteId => degreeFor(siteId) === 17));
+      checks.push(near(interlayer.reduce((sum, b) => sum + 2.25 * b.sourceJ, 0), -0.09));
+      checks.push(near(interlayer.reduce((sum, b) => sum + b.finalJ, 0), 0.03));
+      checks.push(interlayer.every(b => near(distanceFor(b), b.distance, 3e-6)));
+      const passed = checks.filter(Boolean).length;
+      const badge = document.getElementById("auditBadge");
+      badge.textContent = `${passed}/${checks.length} embedded data checks passed`;
+      if (passed !== checks.length) {
+        badge.style.color = "var(--afm)";
+        console.warn("CrI3 exchange atlas data checks", checks);
+      }
+    }
+
+    document.getElementById("viewButtons").addEventListener("click", event => {
+      const button = event.target.closest("button[data-view]");
+      if (button) setView(button.dataset.view);
+    });
+
+    document.getElementById("scopeButtons").addEventListener("click", event => {
+      const button = event.target.closest("button[data-scope]");
+      if (!button) return;
+      state.scope = button.dataset.scope;
+      state.selectedBond = null;
+      syncButtonState("scopeButtons", "scope", state.scope);
+      render();
+    });
+
+    document.getElementById("focusSite").addEventListener("change", event => focusAtom(event.target.value));
+    document.getElementById("shellFilters").addEventListener("change", event => {
+      const filter = event.target.dataset.filter;
+      if (!filter) return;
+      event.target.checked ? state.filters.add(filter) : state.filters.delete(filter);
+      state.selectedBond = null;
+      render();
+    });
+
+    document.getElementById("showMirror").addEventListener("change", event => { state.showMirror = event.target.checked; state.selectedBond = null; render(); });
+    document.getElementById("showLabels").addEventListener("change", event => { state.showLabels = event.target.checked; render(); });
+    document.getElementById("animateBonds").addEventListener("change", event => { state.animate = event.target.checked; render(); });
+    document.getElementById("resetView").addEventListener("click", () => setView("oblique"));
+    document.getElementById("fitView").addEventListener("click", () => { state.zoom = 1; render(); });
+
+    let drag = null;
+    svg.addEventListener("pointerdown", event => {
+      if (event.target.closest(".atom") || event.target.closest("[aria-label*='J =']")) return;
+      drag = { x: event.clientX, y: event.clientY, azimuth: state.azimuth, tilt: state.tilt };
+      svg.setPointerCapture(event.pointerId);
+      svg.classList.add("dragging");
+    });
+    svg.addEventListener("pointermove", event => {
+      if (!drag) return;
+      state.azimuth = drag.azimuth + (event.clientX - drag.x) * .35;
+      state.tilt = Math.max(0, Math.min(90, drag.tilt + (event.clientY - drag.y) * .25));
+      document.querySelectorAll("#viewButtons button").forEach(button => button.classList.remove("active"));
+      document.getElementById("viewLabel").textContent = `Free orbit · az ${state.azimuth.toFixed(0)}° · tilt ${state.tilt.toFixed(0)}°`;
+      render();
+    });
+    const endDrag = () => { drag = null; svg.classList.remove("dragging"); };
+    svg.addEventListener("pointerup", endDrag);
+    svg.addEventListener("pointercancel", endDrag);
+    svg.addEventListener("wheel", event => {
+      event.preventDefault();
+      state.zoom = Math.max(.65, Math.min(1.8, state.zoom * (event.deltaY > 0 ? .92 : 1.08)));
+      render();
+    }, { passive: false });
+
+    window.addEventListener("resize", render);
+    renderSites();
+    runAudit();
+    render();
+  </script>
+</body>
+</html>
